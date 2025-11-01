@@ -3,27 +3,95 @@ package com.practicum.playlistmaker
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
-import com.practicum.playlistmaker.ui.theme.PlaylistMakerTheme
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            PlaylistMakerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            MenuScreen()
+        }
+    }
+}
+
+@Composable
+fun MenuScreen() {
+    Box (
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(55, 114, 231))
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 14.dp, start = 16.dp),
+            text = stringResource(R.string.app_name),
+            fontSize = 22.sp,
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium,
+            fontFamily = FontFamily.SansSerif
+        )
+        Box (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 70.dp)
+                .background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                ),
+        ) {
+            Column (
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                ButtonSample(
+                    painter = painterResource(R.drawable.search_icon),
+                    contentDescription = stringResource(R.string.search)
+                ) {
+
+                }
+                ButtonSample(
+                    painter = painterResource(R.drawable.playlists_icon),
+                    contentDescription = stringResource(R.string.playlists)
+                ) {
+
+                }
+                ButtonSample(
+                    painter = painterResource(R.drawable.favourites_icon),
+                    contentDescription = stringResource(R.string.favourites)
+                ) {
+
+                }
+                ButtonSample(
+                    painter = painterResource(R.drawable.settings_icon),
+                    contentDescription = stringResource(R.string.settings)
+                ) {
+
                 }
             }
         }
@@ -31,17 +99,49 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+private fun ButtonSample(painter: Painter, contentDescription: String, onClick: () -> Unit) {
+    Button(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        content = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp),
+                    painter = painter,
+                    contentDescription = contentDescription,
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .weight(1f),
+                    text = contentDescription,
+                    fontSize = 22.sp,
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp),
+                    painter = painterResource(R.drawable.arrow_forward_icon),
+                    contentDescription = contentDescription,
+                    tint = Color.Gray
+                )
+            }
+        },
+        shape = MaterialTheme.shapes.extraSmall,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.Black
+        ),
+        contentPadding = PaddingValues(vertical = 20.dp, horizontal = 28.dp)
     )
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun GreetingPreview() {
-    PlaylistMakerTheme {
-        Greeting("Android")
-    }
+private fun MenuScreenPreview() {
+    MenuScreen()
 }
