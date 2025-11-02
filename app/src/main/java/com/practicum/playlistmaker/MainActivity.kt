@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -42,7 +44,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MenuScreen() {
-    Box (
+    val context = LocalContext.current
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(55, 114, 231))
@@ -57,7 +61,7 @@ fun MenuScreen() {
             style = MaterialTheme.typography.titleMedium,
             fontFamily = FontFamily.SansSerif
         )
-        Box (
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 70.dp)
@@ -66,14 +70,15 @@ fun MenuScreen() {
                     shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                 ),
         ) {
-            Column (
+            Column(
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 ButtonSample(
                     painter = painterResource(R.drawable.search_icon),
                     contentDescription = stringResource(R.string.search)
                 ) {
-
+                    val intent = Intent(context, SearchActivity::class.java)
+                    context.startActivity(intent)
                 }
                 ButtonSample(
                     painter = painterResource(R.drawable.playlists_icon),
@@ -91,7 +96,8 @@ fun MenuScreen() {
                     painter = painterResource(R.drawable.settings_icon),
                     contentDescription = stringResource(R.string.settings)
                 ) {
-
+                    val intent = Intent(context, SettingsActivity::class.java)
+                    context.startActivity(intent)
                 }
             }
         }
