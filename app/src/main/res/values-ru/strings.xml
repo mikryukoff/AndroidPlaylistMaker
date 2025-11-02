@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PlaylistMaker</string>
+    <string name="search">Поиск</string>
+    <string name="playlists">Плейлисты</string>
+    <string name="favourites">Избранное</string>
+    <string name="settings">Настройки</string>
+    <string name="arrow_forward">Стрелка вперёд</string>
+    <string name="arrow_back">Стрелка назад</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="share_app">Поделиться приложением</string>
+    <string name="message_to_support">Написать в поддержку</string>
+    <string name="user_agreement">Пользовательское соглашение</string>
+</resources>
