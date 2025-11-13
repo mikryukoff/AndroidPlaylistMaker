@@ -118,11 +118,31 @@ private fun ButtonSample(painter: Painter, contentDescription: String, onClick: 
                      color = Color.Black,
                      fontSize = 16.sp
                  )
-                 Icon(
-                     painter = painter,
-                     contentDescription = contentDescription,
-                     tint = Color.LightGray
-                 )
+                 if (contentDescription == stringResource(R.string.dark_theme)) {
+                     Box(
+                         contentAlignment = Alignment.Center
+                     ) {
+                         Icon(
+                             painter = painter,
+                             contentDescription = contentDescription,
+                             tint = Color.LightGray
+                         )
+                         Icon(
+                             painter = painterResource(R.drawable.knob_icon),
+                             contentDescription = contentDescription,
+                             tint = Color.Gray,
+                             modifier = Modifier
+                                 .size(24.dp)
+                                 .align(Alignment.CenterStart)
+                         )
+                     }
+                 } else {
+                     Icon(
+                         painter = painter,
+                         contentDescription = contentDescription,
+                         tint = Color.Gray
+                     )
+                 }
              }
         },
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
