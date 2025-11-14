@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -32,6 +35,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.practicum.playlistmaker.utils.ButtonSample
+import com.practicum.playlistmaker.utils.IconType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,26 +79,30 @@ fun MenuScreen() {
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
                 ButtonSample(
-                    painter = painterResource(R.drawable.search_icon),
+                    leadingIcon = IconType.PainterIcon(painterResource(R.drawable.search_icon)),
+                    trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
                     contentDescription = stringResource(R.string.search)
                 ) {
                     val intent = Intent(context, SearchActivity::class.java)
                     context.startActivity(intent)
                 }
                 ButtonSample(
-                    painter = painterResource(R.drawable.playlists_icon),
+                    leadingIcon = IconType.PainterIcon(painterResource(R.drawable.playlists_icon)),
+                    trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
                     contentDescription = stringResource(R.string.playlists)
                 ) {
 
                 }
                 ButtonSample(
-                    painter = painterResource(R.drawable.favourites_icon),
+                    leadingIcon = IconType.PainterIcon(painterResource(R.drawable.favourites_icon)),
+                    trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
                     contentDescription = stringResource(R.string.favourites)
                 ) {
 
                 }
                 ButtonSample(
-                    painter = painterResource(R.drawable.settings_icon),
+                    leadingIcon = IconType.PainterIcon(painterResource(R.drawable.settings_icon)),
+                    trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
                     contentDescription = stringResource(R.string.settings)
                 ) {
                     val intent = Intent(context, SettingsActivity::class.java)
@@ -102,48 +111,6 @@ fun MenuScreen() {
             }
         }
     }
-}
-
-@Composable
-private fun ButtonSample(painter: Painter, contentDescription: String, onClick: () -> Unit) {
-    Button(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
-        content = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(24.dp),
-                    painter = painter,
-                    contentDescription = contentDescription,
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .weight(1f),
-                    text = contentDescription,
-                    fontSize = 22.sp,
-                )
-                Icon(
-                    modifier = Modifier
-                        .size(24.dp),
-                    painter = painterResource(R.drawable.arrow_forward_icon),
-                    contentDescription = contentDescription,
-                    tint = Color.Gray
-                )
-            }
-        },
-        shape = MaterialTheme.shapes.extraSmall,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
-            contentColor = Color.Black
-        ),
-        contentPadding = PaddingValues(vertical = 20.dp, horizontal = 28.dp)
-    )
 }
 
 @Preview
