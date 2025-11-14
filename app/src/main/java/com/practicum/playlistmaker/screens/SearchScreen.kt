@@ -1,9 +1,6 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.screens
 
 import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -42,17 +39,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.practicum.playlistmaker.MainActivity
+import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.utils.TopAppButtonBar
 
-class SearchActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { SearchScreen() }
-    }
-}
-
 @Composable
-fun SearchScreen() {
+fun SearchScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
     var searchRequest by remember { mutableStateOf("") }
 
@@ -64,10 +56,7 @@ fun SearchScreen() {
             TopAppButtonBar(
                 context = context,
                 text =stringResource(R.string.search),
-                onClick = {
-                    val intent = Intent(context, MainActivity::class.java)
-                    context.startActivity(intent)
-                }
+                onClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -177,7 +166,7 @@ fun CustomSearchField(
 @Preview
 @Composable
 private fun SearchScreenPreview() {
-    SearchScreen()
+    SearchScreen(onBackClick = { })
 }
 
 @Composable

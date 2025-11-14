@@ -1,52 +1,29 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.screens
 
 import android.content.Intent
-import android.net.Uri
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.practicum.playlistmaker.utils.ButtonSample
 import com.practicum.playlistmaker.utils.IconType
 import com.practicum.playlistmaker.utils.TopAppButtonBar
 import androidx.core.net.toUri
-
-class SettingsActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { SettingsScreen() }
-    }
-}
+import com.practicum.playlistmaker.R
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(onBackClick: () -> Unit) {
    val context = LocalContext.current
 
     Scaffold(
@@ -56,11 +33,8 @@ fun SettingsScreen() {
         topBar = {
             TopAppButtonBar(
                 context = context,
-                text =stringResource(R.string.settings),
-                onClick = {
-                    val intent = Intent(context, MainActivity::class.java)
-                    context.startActivity(intent)
-                }
+                text = stringResource(R.string.settings),
+                onClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -81,7 +55,7 @@ fun SettingsScreen() {
                 contentFontSize = 16,
                 horizontalPadding = 16,
             ) {
-                val shareIntent: Intent = Intent(Intent.ACTION_SEND)
+                val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.putExtra(Intent.EXTRA_TEXT, "Download my app!")
                 shareIntent.setType("text/plain")
                 context.startActivity(shareIntent)
@@ -92,7 +66,7 @@ fun SettingsScreen() {
                 contentFontSize = 16,
                 horizontalPadding = 16,
             ) {
-                val supportMessageIntent: Intent = Intent(Intent.ACTION_SENDTO)
+                val supportMessageIntent = Intent(Intent.ACTION_SENDTO)
                 supportMessageIntent.data = "mailto:".toUri()
                 supportMessageIntent.putExtra(
                     Intent.EXTRA_EMAIL,
@@ -114,7 +88,7 @@ fun SettingsScreen() {
                 contentFontSize = 16,
                 horizontalPadding = 16,
             ) {
-                val userAgreementIntent: Intent = Intent(Intent.ACTION_VIEW)
+                val userAgreementIntent = Intent(Intent.ACTION_VIEW)
                 userAgreementIntent.data = context.getString(R.string.agreement_url).toUri()
                 context.startActivity(userAgreementIntent)
             }
@@ -125,5 +99,5 @@ fun SettingsScreen() {
 @Preview
 @Composable
 private fun SettingsScreenPreview() {
-    SettingsScreen()
+    SettingsScreen(onBackClick = { })
 }
