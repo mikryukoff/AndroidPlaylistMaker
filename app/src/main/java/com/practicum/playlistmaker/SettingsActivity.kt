@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,10 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +33,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.practicum.playlistmaker.utils.ButtonSample
+import com.practicum.playlistmaker.utils.IconType
+import com.practicum.playlistmaker.utils.TopAppButtonBar
+import androidx.core.net.toUri
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,113 +49,77 @@ class SettingsActivity : ComponentActivity() {
 fun SettingsScreen() {
    val context = LocalContext.current
 
-    Box(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
+            .background(Color.White),
+        topBar = {
+            TopAppButtonBar(
+                context = context,
+                text =stringResource(R.string.settings),
                 onClick = {
                     val intent = Intent(context, MainActivity::class.java)
                     context.startActivity(intent)
-                },
-                content = {
-                    Icon(
-                        modifier = Modifier
-                            .size(22.dp),
-                        painter = painterResource(R.drawable.arrow_back_icon),
-                        contentDescription = stringResource(R.string.arrow_back),
-                        tint = Color.Black,
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(
-                    top = 20.dp,
-                    start = 20.dp,
-                    end = 28.dp,
-                    bottom = 20.dp
-                )
-            )
-            Text(
-                stringResource(R.string.settings),
-                fontSize = 22.sp,
-                style = MaterialTheme.typography.titleMedium
+                }
             )
         }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(top = 80.dp)
+                .padding(paddingValues)
                 .fillMaxWidth()
         ) {
             ButtonSample(
-                painter = painterResource(R.drawable.theme_switch_icon),
-                contentDescription = stringResource(R.string.dark_theme)
+                trailingIcon = IconType.PainterIcon(painterResource(R.drawable.theme_switch_icon)),
+                contentDescription = stringResource(R.string.dark_theme),
+                contentFontSize = 16,
+                horizontalPadding = 16,
             ) { }
             ButtonSample(
-                painter = painterResource(R.drawable.share_icon),
-                contentDescription = stringResource(R.string.share_app)
-            ) { }
+                trailingIcon = IconType.ImageVectorIcon(Icons.Default.Share),
+                contentDescription = stringResource(R.string.share_app),
+                contentFontSize = 16,
+                horizontalPadding = 16,
+            ) {
+                val shareIntent: Intent = Intent(Intent.ACTION_SEND)
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "Download my app!")
+                shareIntent.setType("text/plain")
+                context.startActivity(shareIntent)
+            }
             ButtonSample(
-                painter = painterResource(R.drawable.support_icon),
-                contentDescription = stringResource(R.string.message_to_support)
-            ) { }
+                trailingIcon = IconType.PainterIcon(painterResource(R.drawable.support_icon)),
+                contentDescription = stringResource(R.string.message_to_support),
+                contentFontSize = 16,
+                horizontalPadding = 16,
+            ) {
+                val supportMessageIntent: Intent = Intent(Intent.ACTION_SENDTO)
+                supportMessageIntent.data = "mailto:".toUri()
+                supportMessageIntent.putExtra(
+                    Intent.EXTRA_EMAIL,
+                    arrayOf(context.getString(R.string.dev_email))
+                )
+                supportMessageIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    context.getString(R.string.email_subject)
+                )
+                supportMessageIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    context.getString(R.string.email_text)
+                )
+                context.startActivity(supportMessageIntent)
+            }
             ButtonSample(
-                painter = painterResource(R.drawable.arrow_forward_icon),
-                contentDescription = stringResource(R.string.user_agreement)
-            ) { }
+                trailingIcon = IconType.PainterIcon(painterResource(R.drawable.arrow_forward_icon)),
+                contentDescription = stringResource(R.string.user_agreement),
+                contentFontSize = 16,
+                horizontalPadding = 16,
+            ) {
+                val userAgreementIntent: Intent = Intent(Intent.ACTION_VIEW)
+                userAgreementIntent.data = context.getString(R.string.agreement_url).toUri()
+                context.startActivity(userAgreementIntent)
+            }
         }
     }
-}
-
-@Composable
-private fun ButtonSample(painter: Painter, contentDescription: String, onClick: () -> Unit) {
-    Button(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
-        content = {
-             Row(
-                 verticalAlignment = Alignment.CenterVertically
-             ) {
-                 Text(
-                     modifier = Modifier.weight(1f),
-                     text = contentDescription,
-                     color = Color.Black,
-                     fontSize = 16.sp
-                 )
-                 if (contentDescription == stringResource(R.string.dark_theme)) {
-                     Box(
-                         contentAlignment = Alignment.Center
-                     ) {
-                         Icon(
-                             painter = painter,
-                             contentDescription = contentDescription,
-                             tint = Color.LightGray
-                         )
-                         Icon(
-                             painter = painterResource(R.drawable.knob_icon),
-                             contentDescription = contentDescription,
-                             tint = Color.Gray,
-                             modifier = Modifier
-                                 .size(24.dp)
-                                 .align(Alignment.CenterStart)
-                         )
-                     }
-                 } else {
-                     Icon(
-                         painter = painter,
-                         contentDescription = contentDescription,
-                         tint = Color.Gray
-                     )
-                 }
-             }
-        },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    )
 }
 
 @Preview
