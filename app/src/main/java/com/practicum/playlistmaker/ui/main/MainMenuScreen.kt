@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker.screens
+package com.practicum.playlistmaker.ui.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,8 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.utils.ButtonSample
-import com.practicum.playlistmaker.utils.IconType
+import com.practicum.playlistmaker.ui.utils.ButtonSample
+import com.practicum.playlistmaker.ui.utils.IconType
 
 @Composable
 fun MenuScreen(
