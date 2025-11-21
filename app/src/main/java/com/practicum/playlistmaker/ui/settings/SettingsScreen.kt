@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker.screens
+package com.practicum.playlistmaker.ui.settings
 
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -16,9 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.practicum.playlistmaker.utils.ButtonSample
-import com.practicum.playlistmaker.utils.IconType
-import com.practicum.playlistmaker.utils.TopAppButtonBar
+import com.practicum.playlistmaker.ui.utils.ButtonSample
+import com.practicum.playlistmaker.ui.utils.IconType
+import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
 import androidx.core.net.toUri
 import com.practicum.playlistmaker.R
 
