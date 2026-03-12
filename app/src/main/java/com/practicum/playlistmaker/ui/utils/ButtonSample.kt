@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker.ui.utils
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ButtonSample(
+fun CustomButtonSample(
     leadingIcon: IconType? = null,
+    leadingIconSize: Int = 24,
     trailingIcon: IconType? = null,
-    contentFontSize: Int = 22,
+    trailingIconSize: Int = 24,
     horizontalPadding: Int = 28,
     verticalPadding: Int = 20,
     contentDescription: String,
+    content: @Composable () -> Unit,
     onClick: () -> Unit,
 ) {
     Button(
@@ -32,18 +35,21 @@ fun ButtonSample(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                leadingIcon?.let { icon ->
+                    CorrectIcon(icon, contentDescription, Color.Black, leadingIconSize)
+                }
 
-                leadingIcon?.let { icon -> CorrectIcon(icon, contentDescription, Color.Black) }
-
-                Text(
+                Box(
                     modifier = Modifier
                         .padding(start = 8.dp)
-                        .weight(1f),
-                    text = contentDescription,
-                    fontSize = contentFontSize.sp,
-                )
+                        .weight(1f)
+                ) {
+                    content()
+                }
 
-                trailingIcon?.let { icon -> CorrectIcon(icon, contentDescription, Color.Gray)}
+                trailingIcon?.let { icon ->
+                    CorrectIcon(icon, contentDescription, Color.Gray, trailingIconSize)
+                }
             }
         },
         shape = MaterialTheme.shapes.extraSmall,
@@ -52,5 +58,35 @@ fun ButtonSample(
             contentColor = Color.Black
         ),
         contentPadding = PaddingValues(vertical = verticalPadding.dp, horizontal = horizontalPadding.dp)
+    )
+}
+
+@Composable
+fun ButtonSample(
+    leadingIcon: IconType? = null,
+    leadingIconSize: Int = 24,
+    trailingIcon: IconType? = null,
+    trailingIconSize: Int = 24,
+    contentFontSize: Int = 22,
+    horizontalPadding: Int = 28,
+    verticalPadding: Int = 20,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    CustomButtonSample(
+        leadingIcon = leadingIcon,
+        leadingIconSize = leadingIconSize,
+        trailingIcon = trailingIcon,
+        trailingIconSize = trailingIconSize,
+        horizontalPadding = horizontalPadding,
+        verticalPadding = verticalPadding,
+        onClick = onClick,
+        contentDescription = contentDescription,
+        content = {
+            Text(
+                text = contentDescription,
+                fontSize = contentFontSize.sp,
+            )
+        }
     )
 }

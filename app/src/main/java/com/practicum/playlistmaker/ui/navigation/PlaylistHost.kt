@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.practicum.playlistmaker.ui.main.MenuScreen
 import com.practicum.playlistmaker.ui.search.SearchScreen
+import com.practicum.playlistmaker.ui.search.SearchViewModel
 import com.practicum.playlistmaker.ui.settings.SettingsScreen
 
 enum class Screen(val route: String) {
@@ -19,6 +20,7 @@ enum class Screen(val route: String) {
 fun PlaylistHost(
     startDestination: String = "main_menu",
     navController: NavHostController = rememberNavController(),
+    searchViewModel: SearchViewModel,
 ) {
     NavHost(navController, startDestination) {
         composable(route = Screen.MAIN_MENU.route) {
@@ -28,7 +30,10 @@ fun PlaylistHost(
             )
         }
         composable(route = Screen.SEARCH.route) {
-            SearchScreen(onBackClick = { navController.navigate(Screen.MAIN_MENU.route) })
+            SearchScreen(
+                onBackClick = { navController.navigate(Screen.MAIN_MENU.route) },
+                viewModel = searchViewModel
+            )
         }
         composable(route = Screen.SETTINGS.route) {
             SettingsScreen(onBackClick = { navController.navigate(Screen.MAIN_MENU.route) })
