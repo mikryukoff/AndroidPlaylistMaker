@@ -1,9 +1,13 @@
 <resources>
     <string name="app_name" translatable="false">PlaylistMaker</string>
+    <string name="error">Error</string>
     <string name="search">Search</string>
+    <string name="clear_search">Clear search</string>
     <string name="playlists">Playlists</string>
     <string name="favourites">Favourites</string>
     <string name="settings">Settings</string>
+    <string name="songs">Songs</string>
+    <string name="no_songs_found">No songs found</string>
     <string name="arrow_forward">Arrow Forward</string>
     <string name="arrow_back">Arrow back</string>
     <string name="dark_theme">Dark theme</string>

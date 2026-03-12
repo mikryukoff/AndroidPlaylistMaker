@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,8 +32,10 @@ fun PlaylistHost(
         }
         composable(route = Screen.SEARCH.route) {
             SearchScreen(
+                modifier = Modifier,
+                onClick = { },
                 onBackClick = { navController.navigate(Screen.MAIN_MENU.route) },
-                viewModel = searchViewModel
+                searchViewModel = searchViewModel
             )
         }
         composable(route = Screen.SETTINGS.route) {

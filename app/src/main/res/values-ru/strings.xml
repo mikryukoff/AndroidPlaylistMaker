@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PlaylistMaker</string>
+    <string name="error">Ошибка</string>
     <string name="search">Поиск</string>
+    <string name="clear_search">Очистить поиск</string>
     <string name="playlists">Плейлисты</string>
     <string name="favourites">Избранное</string>
     <string name="settings">Настройки</string>
+    <string name="songs">Треки</string>
+    <string name="no_songs_found">Треки не найдены</string>
     <string name="arrow_forward">Стрелка вперёд</string>
     <string name="arrow_back">Стрелка назад</string>
     <string name="dark_theme">Тёмная тема</string>

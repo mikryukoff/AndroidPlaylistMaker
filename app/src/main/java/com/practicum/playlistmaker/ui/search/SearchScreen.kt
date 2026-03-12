@@ -1,8 +1,10 @@
 package com.practicum.playlistmaker.ui.search
 
-import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,25 +13,27 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,33 +41,58 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.practicum.playlistmaker.ui.activity.MainActivity
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.data.network.Track
-import com.practicum.playlistmaker.ui.utils.CustomButtonSample
-import com.practicum.playlistmaker.ui.utils.IconType
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
 
 @Composable
 fun SearchScreen(
-    onBackClick: () -> Unit,
-    viewModel: SearchViewModel
+    modifier: Modifier = Modifier,
+    searchViewModel: SearchViewModel,
+    onClick: (Int?) -> Unit,
+    onBackClick: () -> Unit
 ) {
+    val screenState by searchViewModel.searchScreenState.collectAsState()
+    var historyList by remember { mutableStateOf<List<String>>(emptyList()) }
+    var text by remember { mutableStateOf("") }
+    var isFocused by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    var searchRequest by remember { mutableStateOf("") }
-    val screenState by viewModel.searchScreenState.collectAsState()
+
+    LaunchedEffect(text) {
+        searchViewModel.updateQuery(text)
+    }
+
+    LaunchedEffect(screenState) {
+        when (screenState) {
+            is SearchState.Success -> {
+                focusManager.clearFocus()
+            }
+            else -> Unit
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        historyList = searchViewModel.getHistoryList()
+    }
 
     Scaffold(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color.White),
         topBar = {
@@ -83,12 +112,28 @@ fun SearchScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                value = searchRequest,
-                onValueChange = { searchRequest = it },
+                value = text,
+                onValueChange = { text = it },
                 placeholder = stringResource(R.string.search),
-                onClearClick = { searchRequest = "" },
-                onSearchClick = { viewModel.search(searchRequest) }
+                onClearClick = {
+                    text = ""
+                    searchViewModel.clearSearch()
+                },
+                onSearchClick = {
+                    // Можно оставить пустым, поиск идёт автоматически через LaunchedEffect
+                },
+                focusRequester = focusRequester,
+                onFocusChange = { focused -> isFocused = focused }
             )
+
+            if (isFocused && text.isEmpty() && historyList.isNotEmpty()) {
+                HistoryRequests(
+                    historyList = historyList,
+                    onClick = { word ->
+                        text = word
+                    }
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -97,11 +142,20 @@ fun SearchScreen(
             ) {
                 when (screenState) {
                     is SearchState.Initial -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Введите строку для поиска")
+                        if (text.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(stringResource(R.string.search))
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
 
@@ -116,12 +170,25 @@ fun SearchScreen(
 
                     is SearchState.Success -> {
                         val tracks = (screenState as SearchState.Success).foundList
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(tracks.size) { index ->
-                                TrackListItem(track = tracks[index])
-                                HorizontalDivider(thickness = 0.5.dp)
+                        if (tracks.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    stringResource(R.string.no_songs_found),
+                                    color = Color.Red
+                                )
+                            }
+                        } else {
+                            LazyColumn {
+                                items(tracks.size) { index ->
+                                    TrackListItem(
+                                        track = tracks[index],
+                                        onClick = { onClick(index) }
+                                    )
+                                    HorizontalDivider(thickness = 0.5.dp)
+                                }
                             }
                         }
                     }
@@ -132,7 +199,17 @@ fun SearchScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Ошибка: $error", color = Color.Red)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    stringResource(R.string.error),
+                                    color = Color.Red
+                                )
+                                Text(
+                                    error,
+                                    color = Color.Red,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -149,6 +226,8 @@ fun CustomSearchField(
     placeholder: String = "",
     onClearClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
+    focusRequester: FocusRequester = FocusRequester(),
+    onFocusChange: (Boolean) -> Unit = {},
     height: Dp = 36.dp,
     iconTextSpacing: Dp = 8.dp,
     horizontalPadding: Dp = 16.dp,
@@ -192,7 +271,12 @@ fun CustomSearchField(
                 contentAlignment = Alignment.CenterStart
             ) {
                 BasicTextField(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { focusState ->
+                            onFocusChange(focusState.isFocused)
+                        },
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = LocalTextStyle.current.copy(
@@ -233,119 +317,114 @@ fun CustomSearchField(
     }
 }
 
-//@Preview
-//@Composable
-//private fun SearchScreenPreview() {
-//    SearchScreen(
-//        onBackClick = { }
-//    )
-//}
-
 @Composable
-fun TrackListItem(track: Track) {
-    CustomButtonSample(
-        leadingIcon = IconType.PainterIcon(painterResource(R.drawable.ic_music)),
-        trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
-        contentDescription = track.trackName,
-        horizontalPadding = 13,
-        verticalPadding = 14,
-        leadingIconSize = 45,
-        content = {
-            Column() {
-                Text(
-                    text = track.trackName,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "${track.artistName} - ${track.trackTime}",
-                    fontSize = 11.sp
-                )
-            }
-        }
-    ) { }
-}
-
-@Preview
-@Composable
-private fun TrackListItemPreview() {
-    TrackListItem(track = Track( trackName = "Владивосток 2000", artistName = "Мумий Троль", trackTime = "2:38"))
-}
-
-@Composable
-private fun TextFieldSearchScreen() {
-    val context = LocalContext.current
-    var searchRequest: String by remember { mutableStateOf("") }
-
-    Scaffold(
+fun TrackListItem(
+    track: Track,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
+) {
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        topBar = {
-            TopAppButtonBar(
-                context = context,
-                text = stringResource(R.string.search),
-                onClick = {
-                    val intent = Intent(context, MainActivity::class.java)
-                    context.startActivity(intent)
-                }
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+            .padding(horizontal = 13.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_music),
+            contentDescription = null,
+            modifier = Modifier.size(45.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = track.trackName,
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${track.artistName} - ${track.trackTime}",
+                fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-    ) { paddingValues ->
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            value = searchRequest,
-            onValueChange = { searchRequest = it },
-            singleLine = true,
-            label = {
-                Text(
-                    text = stringResource(R.string.search),
-                    fontSize = 16.sp,
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    modifier = Modifier
-                        .size(18.dp),
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.search)
-                )
-            },
-            trailingIcon = {
-                if (!searchRequest.isEmpty()) {
-                    Icon(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .clickable(
-                                onClick = { searchRequest = "" }
-                            ),
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = stringResource(R.string.search),
-                        tint = Color.Gray
-                    )
-                }
-            },
-            shape = MaterialTheme.shapes.small,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.LightGray,
-                unfocusedContainerColor = Color.LightGray,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedLabelColor = Color.Gray,
-                unfocusedLabelColor = Color.Gray,
-                focusedLeadingIconColor = Color.Gray,
-                unfocusedLeadingIconColor = Color.Gray,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            ),
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Color.Gray
         )
     }
 }
 
+@Composable
+fun HistoryRequests(
+    historyList: List<String>,
+    onClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 200.dp)
+            .border(
+                width = 1.dp,
+                color = Color.Gray,
+                shape = RoundedCornerShape(4.dp)
+            )
+    ) {
+        items(historyList.size) { index ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onClick(historyList[index]) }
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.History,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = historyList[index])
+            }
+            if (historyList[index] != historyList.last()) {
+                HorizontalDivider(thickness = 0.5.dp)
+            }
+        }
+    }
+}
+
+// Preview functions (опционально)
 @Preview
 @Composable
-private fun TextFieldSearchScreenPreview() {
-    TextFieldSearchScreen()
+private fun TrackListItemPreview() {
+    TrackListItem(
+        track = Track(
+            id = 1,
+            trackName = "Владивосток 2000",
+            artistName = "Мумий Троль",
+            trackTime = "2:38",
+            image = "X",
+            favorite = false,
+            playlistId = 0
+        ),
+        onClick = {}
+    )
+}
+
+@Preview
+@Composable
+private fun CustomSearchFieldPreview() {
+    CustomSearchField(
+        value = "",
+        onValueChange = {},
+        placeholder = "Поиск"
+    )
 }

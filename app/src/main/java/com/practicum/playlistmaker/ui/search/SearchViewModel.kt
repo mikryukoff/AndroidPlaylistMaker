@@ -3,30 +3,39 @@ package com.practicum.playlistmaker.ui.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.practicum.playlistmaker.creator.Creator
-import com.practicum.playlistmaker.domain.api.TracksRepository
+import com.practicum.playlistmaker.creator.Storage
+import com.practicum.playlistmaker.data.network.RetrofitNetworkClient
+import com.practicum.playlistmaker.data.network.SearchHistoryRepositoryImpl
+import com.practicum.playlistmaker.data.network.TracksRepositoryImpl
+import com.practicum.playlistmaker.data.network.Word
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-class SearchViewModel(
-    private val tracksRepository: TracksRepository
-) : ViewModel() {
+@OptIn(FlowPreview::class)
+class SearchViewModel() : ViewModel() {
+    private val tracksRepository = TracksRepositoryImpl(RetrofitNetworkClient(Storage()))
+    private val searchHistoryRepository = SearchHistoryRepositoryImpl(scope = viewModelScope)
+    private val _searchQuery = MutableStateFlow("")
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
-    val searchScreenState  = _searchScreenState.asStateFlow()
+    val searchScreenState = _searchScreenState.asStateFlow()
 
-    fun search(whatSearch: String){
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _searchScreenState.update { SearchState.Searching }
-                val list = tracksRepository.searchTracks(expression = whatSearch)
-                _searchScreenState.update { SearchState.Success(foundList = list) }
-            } catch (e: IOException){
-                _searchScreenState.update { SearchState.Fail(e.message.toString()) }
-            }
+    init {
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(1000)
+                .distinctUntilChanged()
+                .collect { query ->
+                    if (query.isNotEmpty()) {
+                        performSearch(query)
+                    }
+                }
         }
     }
 
@@ -35,8 +44,32 @@ class SearchViewModel(
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SearchViewModel(Creator.getTracksRepository()) as T
+                    return SearchViewModel() as T
                 }
             }
     }
+
+    fun updateQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    private fun performSearch(request: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _searchScreenState.update { SearchState.Searching }
+                searchHistoryRepository.addToHistory(Word(word = request))
+                val list = tracksRepository.searchTracks(expression = request)
+                _searchScreenState.update { SearchState.Success(foundList = list) }
+            } catch (e: IOException) {
+                _searchScreenState.update { SearchState.Fail(e.message.toString()) }
+            }
+        }
+    }
+
+    fun clearSearch() {
+        _searchScreenState.update { SearchState.Initial }
+    }
+
+    suspend fun getHistoryList() = searchHistoryRepository.getHistoryRequests()
+
 }

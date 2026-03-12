@@ -1,22 +1,37 @@
 package com.practicum.playlistmaker.data.network
 
-import com.practicum.playlistmaker.domain.NetworkClient
-import com.practicum.playlistmaker.data.dto.TracksSearchRequest
-import com.practicum.playlistmaker.data.dto.TracksSearchResponse
 import com.practicum.playlistmaker.domain.api.TracksRepository
+import kotlinx.coroutines.delay
 
-class TracksRepositoryImpl(private val networkClient: NetworkClient) : TracksRepository {
+class TracksRepositoryImpl(retrofitNetworkClient: RetrofitNetworkClient) : TracksRepository {
+    override suspend fun getAllTracks(): List<Track> {
+        delay(1000)// Имитируем запрос к серверу
+        return listTracks
+    }
 
-    override fun searchTracks(expression: String): List<Track> {
-        val response = networkClient.doRequest(TracksSearchRequest(expression))
-        return if (response.resultCode == 200) {
-            (response as TracksSearchResponse).results.map {
-                val seconds = it.trackTimeMillis / 1000
-                val minutes = seconds / 60
-                val trackTime = "%02d".format(minutes) + ":" + "%02d".format(seconds - minutes * 60)
-                Track(it.trackName, it.artistName, trackTime) }
-        } else {
-            emptyList()
-        }
+    override suspend fun searchTracks(expression: String): List<Track> {
+        delay(1000)// Имитируем запрос к серверу
+        return listTracks.filter { it.trackName.lowercase().contains(expression.lowercase()) }
     }
 }
+
+val listTracks = listOf(
+    Track(
+        id = 1,
+        trackName = "Владивосток 2000",
+        artistName = "Мумий Троль",
+        trackTime = "2:38",
+        image = "",
+        favorite = false,
+        playlistId = 0
+    ),
+    Track(
+        id = 10,
+        trackName = "Чёрный бумер",
+        artistName = "Серега",
+        trackTime = "4:01",
+        image = "",
+        favorite = false,
+        playlistId = 0
+    )
+)
