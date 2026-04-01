@@ -4,10 +4,16 @@
     <string name="search">Search</string>
     <string name="clear_search">Clear search</string>
     <string name="playlists">Playlists</string>
+    <string name="add_playlist">Add playlists</string>
     <string name="favourites">Favourites</string>
     <string name="settings">Settings</string>
     <string name="songs">Songs</string>
     <string name="no_songs_found">No songs found</string>
+    <string name="server_error">A server error occurred</string>
+    <string name="refresh">Refresh</string>
+    <string name="playlist_not_found">Playlist not found</string>
+    <string name="playlist_empty">This playlist has no tracks yet</string>
+    <string name="player_no_track">No track selected</string>
     <string name="arrow_forward">Arrow Forward</string>
     <string name="arrow_back">Arrow back</string>
     <string name="dark_theme">Dark theme</string>

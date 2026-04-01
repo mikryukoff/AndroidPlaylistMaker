@@ -1,14 +1,18 @@
 package com.practicum.playlistmaker.creator
 
-import com.practicum.playlistmaker.data.network.TracksRepositoryImpl
-import com.practicum.playlistmaker.data.network.RetrofitNetworkClient
+import com.practicum.playlistmaker.data.network.ITunesApiFactory
+import com.practicum.playlistmaker.data.network.TrackRepositoryImpl
 import com.practicum.playlistmaker.domain.api.TrackSearchInteractor
 import com.practicum.playlistmaker.domain.api.TracksRepository
+import com.practicum.playlistmaker.domain.db.DatabaseProvider
 import com.practicum.playlistmaker.domain.impl.TrackSearchInteractorImpl
 
 object Creator {
     fun getTracksRepository(): TracksRepository {
-        return TracksRepositoryImpl(RetrofitNetworkClient(Storage()))
+        return TrackRepositoryImpl(
+            networkClient = ITunesApiFactory.networkClient(),
+            database = DatabaseProvider.instance,
+        )
     }
 
     fun provideTrackSearchInteractor(): TrackSearchInteractor {

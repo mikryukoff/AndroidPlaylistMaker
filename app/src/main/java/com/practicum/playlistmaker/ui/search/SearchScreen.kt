@@ -1,10 +1,10 @@
 package com.practicum.playlistmaker.ui.search
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,8 +23,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -49,22 +51,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.data.network.Track
+import com.practicum.playlistmaker.ui.utils.CorrectIcon
+import com.practicum.playlistmaker.ui.utils.IconType
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
 
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
     searchViewModel: SearchViewModel,
-    onClick: (Int?) -> Unit,
-    onBackClick: () -> Unit
+    onTrackClick: (Track) -> Unit,
+    onBackClick: () -> Unit,
 ) {
     val screenState by searchViewModel.searchScreenState.collectAsState()
     var historyList by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -80,9 +86,7 @@ fun SearchScreen(
 
     LaunchedEffect(screenState) {
         when (screenState) {
-            is SearchState.Success -> {
-                focusManager.clearFocus()
-            }
+            is SearchState.Success -> focusManager.clearFocus()
             else -> Unit
         }
     }
@@ -99,14 +103,14 @@ fun SearchScreen(
             TopAppButtonBar(
                 context = context,
                 text = stringResource(R.string.search),
-                onClick = onBackClick
+                onClick = onBackClick,
             )
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             CustomSearchField(
                 modifier = Modifier
@@ -115,44 +119,45 @@ fun SearchScreen(
                 value = text,
                 onValueChange = { text = it },
                 placeholder = stringResource(R.string.search),
+                clearContentDescription = stringResource(R.string.clear_search),
                 onClearClick = {
                     text = ""
+                    focusManager.clearFocus()
                     searchViewModel.clearSearch()
                 },
-                onSearchClick = {
-                    // Можно оставить пустым, поиск идёт автоматически через LaunchedEffect
-                },
+                onSearchClick = { },
                 focusRequester = focusRequester,
-                onFocusChange = { focused -> isFocused = focused }
+                onFocusChange = { focused -> isFocused = focused },
             )
 
             if (isFocused && text.isEmpty() && historyList.isNotEmpty()) {
                 HistoryRequests(
                     historyList = historyList,
-                    onClick = { word ->
-                        text = word
-                    }
+                    onClick = { word -> text = word },
                 )
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f)
+                    .weight(1f),
             ) {
-                when (screenState) {
+                when (val state = screenState) {
                     is SearchState.Initial -> {
                         if (text.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
                             ) {
-                                Text(stringResource(R.string.search))
+                                Text(
+                                    stringResource(R.string.search),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         } else {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator()
                             }
@@ -162,30 +167,25 @@ fun SearchScreen(
                     is SearchState.Searching -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularProgressIndicator()
                         }
                     }
 
                     is SearchState.Success -> {
-                        val tracks = (screenState as SearchState.Success).foundList
+                        val tracks = state.foundList
                         if (tracks.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    stringResource(R.string.no_songs_found),
-                                    color = Color.Red
-                                )
-                            }
+                            SearchPlaceholder(
+                                message = stringResource(R.string.no_songs_found),
+                                icon = IconType.PainterIcon(painterResource(R.drawable.ic_music))
+                            )
                         } else {
                             LazyColumn {
                                 items(tracks.size) { index ->
                                     TrackListItem(
                                         track = tracks[index],
-                                        onClick = { onClick(index) }
+                                        onClick = { onTrackClick(tracks[index]) },
                                     )
                                     HorizontalDivider(thickness = 0.5.dp)
                                 }
@@ -194,25 +194,55 @@ fun SearchScreen(
                     }
 
                     is SearchState.Fail -> {
-                        val error = (screenState as SearchState.Fail).error
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    stringResource(R.string.error),
-                                    color = Color.Red
-                                )
-                                Text(
-                                    error,
-                                    color = Color.Red,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
+                        SearchPlaceholder(
+                            message = stringResource(R.string.server_error),
+                            icon = IconType.ImageVectorIcon(Icons.Default.Error),
+                            extraDetail = state.error,
+                            onRetry = { searchViewModel.retryLastSearch() },
+                        )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchPlaceholder(
+    message: String,
+    icon: IconType,
+    modifier: Modifier = Modifier,
+    extraDetail: String? = null,
+    onRetry: (() -> Unit)? = null,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        CorrectIcon(icon, "icon", Color.Black, 120)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = message,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        extraDetail?.takeIf { it.isNotBlank() }?.let { detail ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = detail,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        onRetry?.let { retry ->
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = retry) {
+                Text(stringResource(R.string.refresh))
             }
         }
     }
@@ -224,6 +254,7 @@ fun CustomSearchField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
+    clearContentDescription: String = "",
     onClearClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     focusRequester: FocusRequester = FocusRequester(),
@@ -233,16 +264,16 @@ fun CustomSearchField(
     horizontalPadding: Dp = 16.dp,
     verticalPadding: Dp = 8.dp,
     iconSize: Dp = 16.dp,
-    textSize: TextUnit = 16.sp
+    textSize: TextUnit = 16.sp,
 ) {
     Box(
-        modifier = modifier
+        modifier = modifier,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(height)
-                .background(Color.LightGray, MaterialTheme.shapes.small)
+                .background(Color.LightGray, MaterialTheme.shapes.small),
         )
 
         Row(
@@ -250,7 +281,7 @@ fun CustomSearchField(
                 .fillMaxWidth()
                 .height(height)
                 .padding(horizontal = horizontalPadding),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 modifier = Modifier
@@ -258,7 +289,7 @@ fun CustomSearchField(
                     .clickable(onClick = onSearchClick),
                 imageVector = Icons.Default.Search,
                 contentDescription = placeholder,
-                tint = Color.Gray
+                tint = Color.Gray,
             )
 
             Spacer(modifier = Modifier.width(iconTextSpacing))
@@ -268,7 +299,7 @@ fun CustomSearchField(
                     .weight(1f)
                     .fillMaxHeight()
                     .padding(vertical = verticalPadding),
-                contentAlignment = Alignment.CenterStart
+                contentAlignment = Alignment.CenterStart,
             ) {
                 BasicTextField(
                     modifier = Modifier
@@ -287,7 +318,7 @@ fun CustomSearchField(
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.CenterStart
+                            contentAlignment = Alignment.CenterStart,
                         ) {
                             if (value.isEmpty()) {
                                 Text(
@@ -298,7 +329,7 @@ fun CustomSearchField(
                             }
                             innerTextField()
                         }
-                    }
+                    },
                 )
             }
             if (value.isNotEmpty()) {
@@ -309,8 +340,8 @@ fun CustomSearchField(
                         .size(iconSize)
                         .clickable(onClick = onClearClick),
                     imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear",
-                    tint = Color.Gray
+                    contentDescription = clearContentDescription,
+                    tint = Color.Gray,
                 )
             }
         }
@@ -321,44 +352,49 @@ fun CustomSearchField(
 fun TrackListItem(
     track: Track,
     onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null
+    onLongClick: (() -> Unit)? = null,
 ) {
+    val placeholder = painterResource(id = R.drawable.ic_music)
+    val artworkUrl = track.image.takeIf { it.isNotBlank() }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick
+                onLongClick = onLongClick,
             )
             .padding(horizontal = 13.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_music),
+        AsyncImage(
+            model = artworkUrl,
             contentDescription = null,
-            modifier = Modifier.size(45.dp)
+            modifier = Modifier.size(45.dp),
+            placeholder = placeholder,
+            error = placeholder,
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             Text(
                 text = track.trackName,
                 fontSize = 16.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${track.artistName} - ${track.trackTime}",
+                text = "${track.artistName} · ${track.trackTime}",
                 fontSize = 11.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.Gray
+            tint = Color.Gray,
         )
     }
 }
@@ -366,7 +402,7 @@ fun TrackListItem(
 @Composable
 fun HistoryRequests(
     historyList: List<String>,
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -375,8 +411,8 @@ fun HistoryRequests(
             .border(
                 width = 1.dp,
                 color = Color.Gray,
-                shape = RoundedCornerShape(4.dp)
-            )
+                shape = RoundedCornerShape(4.dp),
+            ),
     ) {
         items(historyList.size) { index ->
             Row(
@@ -384,12 +420,12 @@ fun HistoryRequests(
                     .fillMaxWidth()
                     .clickable { onClick(historyList[index]) }
                     .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Filled.History,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = historyList[index])
@@ -401,7 +437,6 @@ fun HistoryRequests(
     }
 }
 
-// Preview functions (опционально)
 @Preview
 @Composable
 private fun TrackListItemPreview() {
@@ -411,11 +446,11 @@ private fun TrackListItemPreview() {
             trackName = "Владивосток 2000",
             artistName = "Мумий Троль",
             trackTime = "2:38",
-            image = "X",
+            image = "",
             favorite = false,
-            playlistId = 0
+            playlistId = 0,
         ),
-        onClick = {}
+        onClick = {},
     )
 }
 
@@ -425,6 +460,7 @@ private fun CustomSearchFieldPreview() {
     CustomSearchField(
         value = "",
         onValueChange = {},
-        placeholder = "Поиск"
+        placeholder = "Поиск",
+        clearContentDescription = "",
     )
 }

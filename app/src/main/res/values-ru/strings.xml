@@ -8,6 +8,11 @@
     <string name="settings">Настройки</string>
     <string name="songs">Треки</string>
     <string name="no_songs_found">Треки не найдены</string>
+    <string name="server_error">На сервере произошла ошибка</string>
+    <string name="refresh">Обновить</string>
+    <string name="playlist_not_found">Плейлист не найден</string>
+    <string name="playlist_empty">В этом плейлисте пока нет треков</string>
+    <string name="player_no_track">Трек не выбран</string>
     <string name="arrow_forward">Стрелка вперёд</string>
     <string name="arrow_back">Стрелка назад</string>
     <string name="dark_theme">Тёмная тема</string>
