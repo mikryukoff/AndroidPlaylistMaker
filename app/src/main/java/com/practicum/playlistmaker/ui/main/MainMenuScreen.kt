@@ -27,7 +27,8 @@ import com.practicum.playlistmaker.ui.utils.IconType
 @Composable
 fun MenuScreen(
     onSearchClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onPlaylistsClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -65,8 +66,9 @@ fun MenuScreen(
                 ButtonSample(
                     leadingIcon = IconType.PainterIcon(painterResource(R.drawable.playlists_icon)),
                     trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
-                    contentDescription = stringResource(R.string.playlists)
-                ) { }
+                    contentDescription = stringResource(R.string.playlists),
+                    onClick = onPlaylistsClick
+                )
                 ButtonSample(
                     leadingIcon = IconType.PainterIcon(painterResource(R.drawable.favourites_icon)),
                     trailingIcon = IconType.ImageVectorIcon(Icons.AutoMirrored.Filled.KeyboardArrowRight),
@@ -86,5 +88,5 @@ fun MenuScreen(
 @Preview
 @Composable
 private fun MenuScreenPreview() {
-    MenuScreen(onSearchClick = { }, onSettingsClick = { })
+    MenuScreen(onSearchClick = { }, onSettingsClick = { }, onPlaylistsClick = { })
 }
