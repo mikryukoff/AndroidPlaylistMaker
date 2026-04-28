@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker.ui.playlist
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,19 +26,33 @@ import com.practicum.playlistmaker.data.network.Track
 import com.practicum.playlistmaker.ui.search.TrackListItem
 import com.practicum.playlistmaker.ui.theme.PlaylistMakerTheme
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistScreen(
     modifier: Modifier = Modifier,
     playlistViewModel: PlaylistViewModel,
+    playlistsViewModel: PlaylistsViewModel,
     onTrackClick: (Track) -> Unit,
     navigateBack: () -> Unit,
 ) {
     val playlist by playlistViewModel.playlist.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     PlaylistScreenContent(
         modifier = modifier,
         playlist = playlist,
         onTrackClick = onTrackClick,
+        onTrackLongClick = { track ->
+            coroutineScope.launch {
+                playlistsViewModel.deleteTrackFromPlaylist(track)
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.removed_from_playlist_message, playlist?.name.orEmpty()),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        },
         navigateBack = navigateBack,
     )
 }
@@ -46,6 +62,7 @@ internal fun PlaylistScreenContent(
     modifier: Modifier = Modifier,
     playlist: Playlist?,
     onTrackClick: (Track) -> Unit,
+    onTrackLongClick: (Track) -> Unit,
     navigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -110,6 +127,7 @@ internal fun PlaylistScreenContent(
                             TrackListItem(
                                 track = tracks[index],
                                 onClick = { onTrackClick(tracks[index]) },
+                                onLongClick = { onTrackLongClick(tracks[index]) },
                             )
                             HorizontalDivider(thickness = 0.5.dp)
                         }
@@ -153,6 +171,7 @@ private fun PlaylistScreenPreviewWithTracks() {
         PlaylistScreenContent(
             playlist = previewPlaylistWithTracks,
             onTrackClick = {},
+            onTrackLongClick = {},
             navigateBack = {},
         )
     }
@@ -170,6 +189,7 @@ private fun PlaylistScreenPreviewEmpty() {
                 tracks = emptyList(),
             ),
             onTrackClick = {},
+            onTrackLongClick = {},
             navigateBack = {},
         )
     }
@@ -182,6 +202,7 @@ private fun PlaylistScreenPreviewNotFound() {
         PlaylistScreenContent(
             playlist = null,
             onTrackClick = {},
+            onTrackLongClick = {},
             navigateBack = {},
         )
     }

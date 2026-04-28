@@ -22,6 +22,9 @@ material3 = "1.4.0"
 retrofit = "3.0.0"
 coil = "2.7.0"
 lifecycleViewmodelCompose = "2.9.4"
+room = "2.7.2"
+datastorePreferences = "1.1.7"
+ksp = "2.0.21-1.0.27"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -52,9 +55,14 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3",
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

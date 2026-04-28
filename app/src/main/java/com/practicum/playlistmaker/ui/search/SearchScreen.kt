@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker.ui.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -61,9 +62,14 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.data.network.Track
+import com.practicum.playlistmaker.domain.api.TracksRepository
+import com.practicum.playlistmaker.domain.api.SearchHistoryRepository
+import com.practicum.playlistmaker.ui.theme.PlaylistMakerTheme
 import com.practicum.playlistmaker.ui.utils.CorrectIcon
 import com.practicum.playlistmaker.ui.utils.IconType
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun SearchScreen(
@@ -79,6 +85,8 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+
+    BackHandler(onBack = onBackClick)
 
     LaunchedEffect(text) {
         searchViewModel.updateQuery(text)
@@ -463,4 +471,39 @@ private fun CustomSearchFieldPreview() {
         placeholder = "Поиск",
         clearContentDescription = "",
     )
+}
+
+@Preview(showBackground = true, name = "Search screen")
+@Composable
+private fun SearchScreenPreview() {
+    val previewRepository = object : TracksRepository {
+        override suspend fun searchTracks(expression: String): List<Track> = emptyList()
+
+        override fun getTrackByNameAndArtist(track: Track): Flow<Track?> = flowOf(null)
+
+        override fun getFavoriteTracks(): Flow<List<Track>> = flowOf(emptyList())
+
+        override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) = Unit
+
+        override suspend fun deleteTracksByPlaylistId(playlistId: Long) = Unit
+
+        override suspend fun deleteTrackFromPlaylist(track: Track) = Unit
+
+        override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) = Unit
+    }
+    val previewSearchHistoryRepository = object : SearchHistoryRepository {
+        override suspend fun getHistoryRequests(): List<String> = emptyList()
+        override fun addToHistory(word: com.practicum.playlistmaker.data.network.Word) = Unit
+    }
+
+    PlaylistMakerTheme(dynamicColor = false) {
+        SearchScreen(
+            searchViewModel = SearchViewModel(
+                tracksRepository = previewRepository,
+                searchHistoryRepository = previewSearchHistoryRepository,
+            ),
+            onTrackClick = {},
+            onBackClick = {},
+        )
+    }
 }

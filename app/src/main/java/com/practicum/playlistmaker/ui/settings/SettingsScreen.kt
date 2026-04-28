@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import android.widget.Toast
 import com.practicum.playlistmaker.ui.utils.ButtonSample
 import com.practicum.playlistmaker.ui.utils.IconType
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
@@ -48,17 +49,26 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                 contentDescription = stringResource(R.string.dark_theme),
                 contentFontSize = 16,
                 horizontalPadding = 16,
-            ) { }
+            ) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.dark_theme_not_implemented),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
             ButtonSample(
                 trailingIcon = IconType.ImageVectorIcon(Icons.Default.Share),
                 contentDescription = stringResource(R.string.share_app),
                 contentFontSize = 16,
                 horizontalPadding = 16,
             ) {
-                val shareIntent = Intent(Intent.ACTION_SEND)
-                shareIntent.putExtra(Intent.EXTRA_TEXT, "Download my app!")
-                shareIntent.setType("text/plain")
-                context.startActivity(shareIntent)
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_app_text))
+                    type = "text/plain"
+                }
+                context.startActivity(
+                    Intent.createChooser(shareIntent, context.getString(R.string.share_app)),
+                )
             }
             ButtonSample(
                 trailingIcon = IconType.PainterIcon(painterResource(R.drawable.support_icon)),

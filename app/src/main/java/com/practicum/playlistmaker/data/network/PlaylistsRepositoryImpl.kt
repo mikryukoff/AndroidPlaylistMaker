@@ -1,27 +1,35 @@
 package com.practicum.playlistmaker.data.network
 
+import com.practicum.playlistmaker.data.db.AppDatabase
+import com.practicum.playlistmaker.data.db.entity.PlaylistEntity
+import com.practicum.playlistmaker.data.db.mapper.toDomain
 import com.practicum.playlistmaker.domain.api.PlaylistsRepository
-import com.practicum.playlistmaker.domain.db.DatabaseMock
-import com.practicum.playlistmaker.domain.db.DatabaseProvider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class PlaylistsRepositoryImpl(
-    private val database: DatabaseMock = DatabaseProvider.instance,
+    database: AppDatabase,
 ) : PlaylistsRepository {
+    private val playlistDao = database.playlistDao()
 
     override fun getPlaylist(playlistId: Long): Flow<Playlist?> {
-        return database.getPlaylist(playlistId)
+        return playlistDao.getPlaylistById(playlistId).map { it?.toDomain() }
     }
 
     override fun getAllPlaylists(): Flow<List<Playlist>> {
-        return database.getAllPlaylists()
+        return playlistDao.getAllPlaylists().map { list -> list.map { it.toDomain() } }
     }
 
     override suspend fun addNewPlaylist(name: String, description: String) {
-        database.addNewPlaylist(name = name, description = description)
+        playlistDao.insertPlaylist(
+            PlaylistEntity(
+                name = name,
+                description = description,
+            ),
+        )
     }
 
     override suspend fun deletePlaylistById(id: Long) {
-        database.deletePlaylistById(playlistId = id)
+        playlistDao.deletePlaylistById(playlistId = id)
     }
 }

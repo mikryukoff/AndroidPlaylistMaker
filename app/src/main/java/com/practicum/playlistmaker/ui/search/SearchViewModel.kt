@@ -1,11 +1,12 @@
 package com.practicum.playlistmaker.ui.search
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.creator.Creator
-import com.practicum.playlistmaker.data.network.SearchHistoryRepositoryImpl
 import com.practicum.playlistmaker.data.network.Word
+import com.practicum.playlistmaker.domain.api.SearchHistoryRepository
 import com.practicum.playlistmaker.domain.api.TracksRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -21,8 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @OptIn(FlowPreview::class)
 class SearchViewModel(
     private val tracksRepository: TracksRepository,
+    private val searchHistoryRepository: SearchHistoryRepository,
 ) : ViewModel() {
-    private val searchHistoryRepository = SearchHistoryRepositoryImpl()
     private val _searchQuery = MutableStateFlow("")
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
@@ -44,11 +45,14 @@ class SearchViewModel(
     }
 
     companion object {
-        fun getViewModelFactory(): ViewModelProvider.Factory =
+        fun getViewModelFactory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SearchViewModel(Creator.getTracksRepository()) as T
+                    return SearchViewModel(
+                        tracksRepository = Creator.getTracksRepository(context),
+                        searchHistoryRepository = Creator.getSearchHistoryRepository(context),
+                    ) as T
                 }
             }
     }
