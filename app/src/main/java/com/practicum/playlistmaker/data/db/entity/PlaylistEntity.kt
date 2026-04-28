@@ -9,4 +9,6 @@ data class PlaylistEntity(
     val id: Long = 0,
     val name: String,
     val description: String,
+    val coverPath: String,
+    val createdAt: Long,
 )

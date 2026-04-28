@@ -20,11 +20,18 @@ class PlaylistsRepositoryImpl(
         return playlistDao.getAllPlaylists().map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun addNewPlaylist(name: String, description: String) {
+    override suspend fun addNewPlaylist(
+        name: String,
+        description: String,
+        coverPath: String,
+        createdAt: Long,
+    ) {
         playlistDao.insertPlaylist(
             PlaylistEntity(
                 name = name,
                 description = description,
+                coverPath = coverPath,
+                createdAt = createdAt,
             ),
         )
     }

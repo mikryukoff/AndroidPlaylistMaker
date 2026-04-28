@@ -14,10 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Icon
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -33,9 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.data.network.Playlist
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
+import java.io.File
 
 @Composable
 fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
@@ -44,14 +47,28 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = { onClick.invoke() }),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Image(
+        val coverModel = playlist.coverPath.takeIf { it.isNotBlank() }?.let(::File)
+        Surface(
             modifier = Modifier.size(48.dp),
-            painter = painterResource(id = R.drawable.ic_music),
-            contentDescription = playlist.name,
-            colorFilter = ColorFilter.tint(Color.Gray)
-        )
+            color = Color.LightGray,
+        ) {
+            if (coverModel == null) {
+                Image(
+                    modifier = Modifier.padding(8.dp),
+                    painter = painterResource(id = R.drawable.ic_music),
+                    contentDescription = playlist.name,
+                )
+            } else {
+                AsyncImage(
+                    model = coverModel,
+                    contentDescription = playlist.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start

@@ -4,10 +4,14 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -29,13 +33,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.data.network.Track
 import com.practicum.playlistmaker.data.network.Playlist
@@ -44,6 +54,7 @@ import com.practicum.playlistmaker.ui.playlist.PlaylistsViewModel
 import com.practicum.playlistmaker.ui.theme.PlaylistMakerTheme
 import com.practicum.playlistmaker.ui.utils.TopAppButtonBar
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +76,7 @@ fun PlayerScreen(
             currentTrack = actualTrack ?: track
         }
     }
+
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -91,6 +103,19 @@ fun PlayerScreen(
                 )
             } else {
                 val track = currentTrack ?: return@Column
+                val artworkUrl = track.image.takeIf { it.isNotBlank() }
+                AsyncImage(
+                    model = artworkUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(bottom = 24.dp),
+                    placeholder = painterResource(R.drawable.ic_music),
+                    error = painterResource(R.drawable.music_not_found),
+                    contentScale = ContentScale.Crop,
+                )
                 Text(
                     text = track.trackName,
                     style = MaterialTheme.typography.headlineSmall,
@@ -110,7 +135,7 @@ fun PlayerScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp),
+                        .padding(top = 54.dp),
                 ) {
                     IconButton(
                         onClick = {
@@ -133,13 +158,17 @@ fun PlayerScreen(
                         },
                     ) {
                         Icon(
+                            modifier = Modifier.size(28.dp),
                             imageVector = if (track.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = stringResource(R.string.add_to_favorites),
                             tint = if (track.favorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    IconButton(onClick = { showPlaylistSheet = true }) {
+                    IconButton(
+                        onClick = { showPlaylistSheet = true }
+                    ) {
                         Icon(
+                            modifier = Modifier.size(28.dp),
                             imageVector = Icons.Filled.Add,
                             contentDescription = stringResource(R.string.add_to_playlist),
                         )
@@ -204,23 +233,55 @@ private fun PlaylistRow(
     playlist: Playlist,
     onClick: () -> Unit,
 ) {
-    Surface(
+    val coverModel = playlist.coverPath.takeIf { it.isNotBlank() }?.let(::File)
+    val tracksText = pluralStringResource(
+        id = R.plurals.tracks_count,
+        count = playlist.tracks.size,
+        playlist.tracks.size,
+    )
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 2.dp,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Surface(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(4.dp)),
+            shape = RoundedCornerShape(4.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            if (coverModel == null) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    painter = painterResource(R.drawable.ic_music),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                AsyncImage(
+                    model = coverModel,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
             Text(text = playlist.name, style = MaterialTheme.typography.titleSmall)
             Text(
-                text = playlist.description,
+                text = tracksText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 

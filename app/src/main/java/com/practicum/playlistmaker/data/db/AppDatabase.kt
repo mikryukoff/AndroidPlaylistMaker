@@ -11,7 +11,7 @@ import com.practicum.playlistmaker.data.db.entity.TrackEntity
 
 @Database(
     entities = [TrackEntity::class, PlaylistEntity::class, PlaylistTrackCrossRef::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

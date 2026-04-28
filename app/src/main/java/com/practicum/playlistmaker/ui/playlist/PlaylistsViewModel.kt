@@ -23,7 +23,12 @@ class PlaylistsViewModel(
         playlistsRepository = object : PlaylistsRepository {
             override fun getPlaylist(playlistId: Long): Flow<Playlist?> = flowOf(null)
             override fun getAllPlaylists(): Flow<List<Playlist>> = flowOf(emptyList())
-            override suspend fun addNewPlaylist(name: String, description: String) = Unit
+            override suspend fun addNewPlaylist(
+                name: String,
+                description: String,
+                coverPath: String,
+                createdAt: Long,
+            ) = Unit
             override suspend fun deletePlaylistById(id: Long) = Unit
         },
         tracksRepository = object : TracksRepository {
@@ -42,9 +47,19 @@ class PlaylistsViewModel(
 
     val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
 
-    fun createNewPlayList(namePlaylist: String, description: String) {
+    fun createNewPlayList(
+        namePlaylist: String,
+        description: String,
+        coverPath: String,
+        createdAt: Long,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.addNewPlaylist(namePlaylist, description)
+            playlistsRepository.addNewPlaylist(
+                name = namePlaylist,
+                description = description,
+                coverPath = coverPath,
+                createdAt = createdAt,
+            )
         }
     }
 

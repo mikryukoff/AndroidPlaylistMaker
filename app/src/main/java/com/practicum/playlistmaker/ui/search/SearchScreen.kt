@@ -186,7 +186,7 @@ fun SearchScreen(
                         if (tracks.isEmpty()) {
                             SearchPlaceholder(
                                 message = stringResource(R.string.no_songs_found),
-                                icon = IconType.PainterIcon(painterResource(R.drawable.ic_music))
+                                icon = IconType.PainterIcon(painterResource(R.drawable.music_not_found))
                             )
                         } else {
                             LazyColumn {
@@ -204,7 +204,7 @@ fun SearchScreen(
                     is SearchState.Fail -> {
                         SearchPlaceholder(
                             message = stringResource(R.string.server_error),
-                            icon = IconType.ImageVectorIcon(Icons.Default.Error),
+                            icon = IconType.PainterIcon(painterResource(R.drawable.search_error)),
                             extraDetail = state.error,
                             onRetry = { searchViewModel.retryLastSearch() },
                         )
@@ -230,7 +230,12 @@ private fun SearchPlaceholder(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        CorrectIcon(icon, "icon", Color.Black, 120)
+        CorrectIcon(
+            icon = icon,
+            contentDescription = "icon",
+            tint = Color.Unspecified,
+            size = 120,
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,

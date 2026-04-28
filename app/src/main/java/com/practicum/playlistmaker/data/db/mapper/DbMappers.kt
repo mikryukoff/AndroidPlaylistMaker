@@ -5,6 +5,7 @@ import com.practicum.playlistmaker.data.db.entity.TrackEntity
 import com.practicum.playlistmaker.data.db.model.PlaylistWithTracks
 import com.practicum.playlistmaker.data.network.Playlist
 import com.practicum.playlistmaker.data.network.Track
+import com.practicum.playlistmaker.data.utils.toHighResolutionArtwork
 
 fun Track.toEntity(): TrackEntity = TrackEntity(
     id = id,
@@ -20,7 +21,7 @@ fun TrackEntity.toDomain(): Track = Track(
     trackName = trackName,
     artistName = artistName,
     trackTime = trackTime,
-    image = image,
+    image = toHighResolutionArtwork(image),
     favorite = favorite,
     playlistId = 0L,
 )
@@ -30,6 +31,8 @@ fun PlaylistEntity.toDomain(tracks: List<Track>): Playlist = Playlist(
     name = name,
     description = description,
     tracks = tracks,
+    coverPath = coverPath,
+    createdAt = createdAt,
 )
 
 fun PlaylistWithTracks.toDomain(): Playlist = playlist.toDomain(
