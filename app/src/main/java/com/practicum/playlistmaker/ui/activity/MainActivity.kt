@@ -10,9 +10,11 @@ import com.practicum.playlistmaker.ui.search.SearchViewModel
 
 class MainActivity : ComponentActivity() {
     private val searchViewModel by viewModels<SearchViewModel> {
-        SearchViewModel.getViewModelFactory()
+        SearchViewModel.getViewModelFactory(applicationContext)
     }
-    private val playlistsViewModel by viewModels<PlaylistsViewModel>()
+    private val playlistsViewModel by viewModels<PlaylistsViewModel> {
+        PlaylistsViewModel.factory(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

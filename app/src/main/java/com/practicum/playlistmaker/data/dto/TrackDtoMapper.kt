@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.data.dto
 
 import com.practicum.playlistmaker.data.network.Track
+import com.practicum.playlistmaker.data.utils.toHighResolutionArtwork
 
 internal fun TrackDto.toDomainTrack(): Track? {
     if (kind != null && kind != "song") return null
@@ -12,7 +13,7 @@ internal fun TrackDto.toDomainTrack(): Track? {
         trackName = name,
         artistName = artistName?.trim().orEmpty().ifEmpty { "—" },
         trackTime = formatTrackDurationMillis(trackTimeMillis),
-        image = artworkUrl100?.trim().orEmpty(),
+        image = toHighResolutionArtwork(artworkUrl100),
         favorite = false,
         playlistId = 0L,
     )

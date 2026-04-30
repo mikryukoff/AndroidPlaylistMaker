@@ -3,15 +3,21 @@ package com.practicum.playlistmaker.data.network
 import com.practicum.playlistmaker.data.dto.TracksSearchRequest
 import com.practicum.playlistmaker.data.dto.TracksSearchResponse
 import com.practicum.playlistmaker.data.dto.toDomainTracks
+import com.practicum.playlistmaker.data.db.dao.PlaylistTrackDao
+import com.practicum.playlistmaker.data.db.dao.TrackDao
+import com.practicum.playlistmaker.data.db.entity.PlaylistTrackCrossRef
+import com.practicum.playlistmaker.data.db.mapper.toDomain
+import com.practicum.playlistmaker.data.db.mapper.toEntity
 import com.practicum.playlistmaker.domain.NetworkClient
 import com.practicum.playlistmaker.domain.api.TracksRepository
-import com.practicum.playlistmaker.domain.db.DatabaseMock
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 class TrackRepositoryImpl(
     private val networkClient: NetworkClient,
-    private val database: DatabaseMock,
+    private val trackDao: TrackDao,
+    private val playlistTrackDao: PlaylistTrackDao,
 ) : TracksRepository {
 
     override suspend fun searchTracks(expression: String): List<Track> {
@@ -30,26 +36,43 @@ class TrackRepositoryImpl(
     }
 
     override fun getTrackByNameAndArtist(track: Track): Flow<Track?> {
-        return database.getTrackByNameAndArtist(track)
+        return trackDao
+            .getTrackByNameAndArtist(track.trackName, track.artistName)
+            .map { it?.toDomain() }
     }
 
     override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
-        database.insertTrack(track.copy(playlistId = playlistId))
+        trackDao.upsertTrack(track.toEntity())
+        playlistTrackDao.insertCrossRef(
+            PlaylistTrackCrossRef(
+                playlistId = playlistId,
+                trackId = track.id,
+            ),
+        )
     }
 
     override suspend fun deleteTrackFromPlaylist(track: Track) {
-        database.insertTrack(track.copy(playlistId = 0))
+        if (track.playlistId > 0L) {
+            playlistTrackDao.deleteCrossRef(playlistId = track.playlistId, trackId = track.id)
+        } else {
+            playlistTrackDao.deleteByTrackId(track.id)
+        }
     }
 
     override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        database.insertTrack(track.copy(favorite = isFavorite))
+        val stored = trackDao.getTrackById(track.id)
+        if (stored == null) {
+            trackDao.upsertTrack(track.copy(favorite = isFavorite).toEntity())
+        } else {
+            trackDao.updateFavorite(trackId = track.id, isFavorite = isFavorite)
+        }
     }
 
     override suspend fun deleteTracksByPlaylistId(playlistId: Long) {
-        database.deleteTracksByPlaylistId(playlistId)
+        playlistTrackDao.deleteByPlaylistId(playlistId)
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
-        return database.getFavoriteTracks()
+        return trackDao.getFavoriteTracks().map { tracks -> tracks.map { it.toDomain() } }
     }
 }
