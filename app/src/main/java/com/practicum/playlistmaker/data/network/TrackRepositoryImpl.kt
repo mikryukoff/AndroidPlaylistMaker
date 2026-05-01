@@ -54,8 +54,10 @@ class TrackRepositoryImpl(
     override suspend fun deleteTrackFromPlaylist(track: Track) {
         if (track.playlistId > 0L) {
             playlistTrackDao.deleteCrossRef(playlistId = track.playlistId, trackId = track.id)
+            deleteTrackIfUnused(track.id)
         } else {
             playlistTrackDao.deleteByTrackId(track.id)
+            deleteTrackIfUnused(track.id)
         }
     }
 
@@ -69,10 +71,21 @@ class TrackRepositoryImpl(
     }
 
     override suspend fun deleteTracksByPlaylistId(playlistId: Long) {
+        val trackIds = playlistTrackDao.getTrackIdsByPlaylistId(playlistId)
         playlistTrackDao.deleteByPlaylistId(playlistId)
+        trackIds.forEach { trackId ->
+            deleteTrackIfUnused(trackId)
+        }
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
         return trackDao.getFavoriteTracks().map { tracks -> tracks.map { it.toDomain() } }
+    }
+
+    private suspend fun deleteTrackIfUnused(trackId: Long) {
+        val track = trackDao.getTrackById(trackId) ?: return
+        if (playlistTrackDao.getTrackUsageCount(trackId) == 0 && !track.favorite) {
+            trackDao.deleteTrackById(trackId)
+        }
     }
 }

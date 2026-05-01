@@ -5,14 +5,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +41,7 @@ fun FavoritesScreen(
     val context = LocalContext.current
     val favoriteTracks by playlistsViewModel.favoriteList.collectAsState(emptyList())
     val coroutineScope = rememberCoroutineScope()
+    var trackToRemoveFromFavorites by remember { mutableStateOf<Track?>(null) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -70,6 +76,26 @@ fun FavoritesScreen(
                         track = track,
                         onClick = { onTrackClick(track) },
                         onLongClick = {
+                            trackToRemoveFromFavorites = track
+                        },
+                    )
+                    HorizontalDivider()
+                }
+            }
+        }
+    }
+
+    if (trackToRemoveFromFavorites != null) {
+        AlertDialog(
+            onDismissRequest = { trackToRemoveFromFavorites = null },
+            title = { Text(text = stringResource(R.string.remove_from_favorites_title)) },
+            text = { Text(text = stringResource(R.string.remove_from_favorites_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val track = trackToRemoveFromFavorites
+                        trackToRemoveFromFavorites = null
+                        if (track != null) {
                             coroutineScope.launch {
                                 playlistsViewModel.toggleFavorite(track, isFavorite = false)
                                 Toast.makeText(
@@ -78,12 +104,18 @@ fun FavoritesScreen(
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
-                        },
-                    )
-                    HorizontalDivider()
+                        }
+                    },
+                ) {
+                    Text(text = stringResource(R.string.delete_action))
                 }
-            }
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = { trackToRemoveFromFavorites = null }) {
+                    Text(text = stringResource(R.string.cancel_action))
+                }
+            },
+        )
     }
 }
 
