@@ -9,14 +9,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +58,7 @@ fun PlaylistScreen(
     val playlist by playlistViewModel.playlist.collectAsState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
     PlaylistScreenContent(
         modifier = modifier,
         playlist = playlist,
@@ -63,6 +73,20 @@ fun PlaylistScreen(
                 ).show()
             }
         },
+        onDeletePlaylist = {
+            val playlistId = playlist?.id
+            if (playlistId != null) {
+                coroutineScope.launch {
+                    playlistsViewModel.deletePlaylistById(playlistId)
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.playlist_deleted_message),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    navigateBack()
+                }
+            }
+        },
         navigateBack = navigateBack,
     )
 }
@@ -73,10 +97,13 @@ internal fun PlaylistScreenContent(
     playlist: Playlist?,
     onTrackClick: (Track) -> Unit,
     onTrackLongClick: (Track) -> Unit,
+    onDeletePlaylist: () -> Unit,
     navigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
     val p = playlist
+    var isDeletePlaylistDialogVisible by remember { mutableStateOf(false) }
+    var trackToDelete by remember { mutableStateOf<Track?>(null) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -85,6 +112,16 @@ internal fun PlaylistScreenContent(
                 context = context,
                 text = p?.name ?: stringResource(R.string.playlists),
                 onClick = navigateBack,
+                actions = {
+                    if (p != null) {
+                        IconButton(onClick = { isDeletePlaylistDialogVisible = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.delete_playlist),
+                            )
+                        }
+                    }
+                },
             )
         },
     ) { paddingValues ->
@@ -195,7 +232,7 @@ internal fun PlaylistScreenContent(
                                 TrackListItem(
                                     track = tracks[index],
                                     onClick = { onTrackClick(tracks[index]) },
-                                    onLongClick = { onTrackLongClick(tracks[index]) },
+                                    onLongClick = { trackToDelete = tracks[index] },
                                 )
                                 HorizontalDivider(thickness = 0.5.dp)
                             }
@@ -204,6 +241,53 @@ internal fun PlaylistScreenContent(
                 }
             }
         }
+    }
+
+    if (isDeletePlaylistDialogVisible) {
+        AlertDialog(
+            onDismissRequest = { isDeletePlaylistDialogVisible = false },
+            title = { Text(text = stringResource(R.string.delete_playlist_title)) },
+            text = { Text(text = stringResource(R.string.delete_playlist_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        isDeletePlaylistDialogVisible = false
+                        onDeletePlaylist()
+                    },
+                ) {
+                    Text(text = stringResource(R.string.delete_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { isDeletePlaylistDialogVisible = false }) {
+                    Text(text = stringResource(R.string.cancel_action))
+                }
+            },
+        )
+    }
+
+    if (trackToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { trackToDelete = null },
+            title = { Text(text = stringResource(R.string.delete_track_title)) },
+            text = { Text(text = stringResource(R.string.delete_track_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val track = trackToDelete
+                        trackToDelete = null
+                        if (track != null) onTrackLongClick(track)
+                    },
+                ) {
+                    Text(text = stringResource(R.string.delete_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { trackToDelete = null }) {
+                    Text(text = stringResource(R.string.cancel_action))
+                }
+            },
+        )
     }
 }
 
@@ -242,6 +326,7 @@ private fun PlaylistScreenPreviewWithTracks() {
             playlist = previewPlaylistWithTracks,
             onTrackClick = {},
             onTrackLongClick = {},
+            onDeletePlaylist = {},
             navigateBack = {},
         )
     }
@@ -261,6 +346,7 @@ private fun PlaylistScreenPreviewEmpty() {
             ),
             onTrackClick = {},
             onTrackLongClick = {},
+            onDeletePlaylist = {},
             navigateBack = {},
         )
     }
@@ -292,6 +378,7 @@ private fun PlaylistScreenPreviewNotFound() {
             playlist = null,
             onTrackClick = {},
             onTrackLongClick = {},
+            onDeletePlaylist = {},
             navigateBack = {},
         )
     }

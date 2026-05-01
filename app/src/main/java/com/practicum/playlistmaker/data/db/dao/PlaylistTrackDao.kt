@@ -19,4 +19,10 @@ interface PlaylistTrackDao {
 
     @Query("DELETE FROM playlist_track_cross_ref WHERE trackId = :trackId")
     suspend fun deleteByTrackId(trackId: Long)
+
+    @Query("SELECT COUNT(*) FROM playlist_track_cross_ref WHERE trackId = :trackId")
+    suspend fun getTrackUsageCount(trackId: Long): Int
+
+    @Query("SELECT trackId FROM playlist_track_cross_ref WHERE playlistId = :playlistId")
+    suspend fun getTrackIdsByPlaylistId(playlistId: Long): List<Long>
 }

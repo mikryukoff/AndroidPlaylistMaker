@@ -23,4 +23,7 @@ interface TrackDao {
 
     @Query("SELECT * FROM tracks WHERE id = :trackId LIMIT 1")
     suspend fun getTrackById(trackId: Long): TrackEntity?
+
+    @Query("DELETE FROM tracks WHERE id = :trackId")
+    suspend fun deleteTrackById(trackId: Long)
 }

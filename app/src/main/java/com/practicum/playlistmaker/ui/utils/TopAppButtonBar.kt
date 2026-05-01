@@ -24,7 +24,8 @@ import com.practicum.playlistmaker.R
 fun TopAppButtonBar(
     context: Context,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    actions: @Composable () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -45,6 +46,7 @@ fun TopAppButtonBar(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.arrow_back)
             )
-        }
+        },
+        actions = { actions() },
     )
 }
